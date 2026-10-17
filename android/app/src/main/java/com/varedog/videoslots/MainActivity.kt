@@ -173,8 +173,8 @@ class MainActivity : Activity() {
                 return true
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                val pos = grid.selectedPosition
-                if (pos in items.indices) {
+                val pos = grid.selectedItemPosition
+                if (pos != AdapterView.INVALID_POSITION && pos in items.indices) {
                     openPlayer(pos)
                     return true
                 }

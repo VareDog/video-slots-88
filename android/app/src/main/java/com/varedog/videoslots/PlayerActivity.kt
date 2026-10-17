@@ -245,7 +245,7 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
         titleView.text = items.getOrNull(index)?.first ?: ""
         titleView.visibility = View.VISIBLE
         handler.removeCallbacksAndMessages(TITLE_TOKEN)
-        handler.postDelayed({ titleView.visibility = View.GONE }, 2600, TITLE_TOKEN)
+        handler.postDelayed({ titleView.visibility = View.GONE }, TITLE_TOKEN, 2600)
     }
 
     private fun showBuffering(text: String) {

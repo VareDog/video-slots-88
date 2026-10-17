@@ -38,7 +38,7 @@ object Api {
         runOn(listPool, task, done, fail)
     }
 
-    fun <T> imgAsync(task: () -> T, done: (T) -> Unit, fail: (T?) -> Unit) {
+    fun <T> imgAsync(task: () -> T, done: (T) -> Unit, fail: (Exception) -> Unit) {
         runOn(imgPool, task, done, fail)
     }
 
@@ -133,7 +133,7 @@ object Api {
                 bitmapCache.put(relPath, bmp)
             }
             bmp
-        }, { b -> onReady(b) }, { onReady(null) })
+        }, { b -> onReady(b) }, { _ -> onReady(null) })
     }
 
     private fun downloadBytes(url: String): ByteArray {
