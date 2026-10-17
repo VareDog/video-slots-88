@@ -6,7 +6,7 @@
     android:background="@drawable/item_bg"
     android:focusable="true"
     android:clickable="true"
-    android:descendantFocusability="blockDescendants">
+    android:descendantFocusability="blocksDescendants">
 
     <FrameLayout
         android:layout_width="match_parent"
