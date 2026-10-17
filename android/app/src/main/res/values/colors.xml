@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0d1117</color>
+    <color name="card">#161b22</color>
+    <color name="focus">#1f6feb</color>
+    <color name="text">#e6edf3</color>
+    <color name="dim">#8b949e</color>
+    <color name="icon_bg">#101820</color>
+</resources>
