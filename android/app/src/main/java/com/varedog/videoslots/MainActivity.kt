@@ -21,9 +21,11 @@ class MainActivity : Activity() {
     private lateinit var grid: GridView
     private lateinit var loading: ProgressBar
     private lateinit var status: TextView
+    private lateinit var keyDebug: TextView
     private var items: List<Api.VideoItem> = emptyList()
     private var lastJson = ""
     private var lastSelection = 0
+    private var downConsumed = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,7 @@ class MainActivity : Activity() {
         grid = findViewById(R.id.grid)
         loading = findViewById(R.id.loading)
         status = findViewById(R.id.status)
+        keyDebug = findViewById(R.id.keyDebug)
 
         val adapter = VideoAdapter(this)
         grid.adapter = adapter
@@ -166,20 +169,42 @@ class MainActivity : Activity() {
             .show()
     }
 
+    private fun noteKey(code: Int, action: Int) {
+        keyDebug.text = "按键 $code ${Keys.name(code)}" +
+            if (action == KeyEvent.ACTION_UP) " 抬起" else ""
+    }
+
+    private fun confirmPress(): Boolean {
+        val pos = grid.selectedItemPosition
+        if (pos != AdapterView.INVALID_POSITION && pos in items.indices) {
+            openPlayer(pos)
+            return true
+        }
+        return false
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_MENU -> {
+        noteKey(keyCode, KeyEvent.ACTION_DOWN)
+        when {
+            keyCode == KeyEvent.KEYCODE_MENU -> {
                 showMenu()
                 return true
             }
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                val pos = grid.selectedItemPosition
-                if (pos != AdapterView.INVALID_POSITION && pos in items.indices) {
-                    openPlayer(pos)
-                    return true
-                }
+            Keys.isConfirm(keyCode) -> {
+                downConsumed = keyCode
+                if (confirmPress()) return true
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        noteKey(keyCode, KeyEvent.ACTION_UP)
+        if (Keys.isConfirm(keyCode)) {
+            val handledOnDown = downConsumed == keyCode
+            downConsumed = -1
+            if (handledOnDown || confirmPress()) return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 }

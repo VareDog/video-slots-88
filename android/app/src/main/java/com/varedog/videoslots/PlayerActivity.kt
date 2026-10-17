@@ -263,17 +263,22 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+        when {
+            Keys.isConfirm(keyCode) -> {
                 togglePlay()
                 return true
             }
-            KeyEvent.KEYCODE_MENU -> {
+            keyCode == KeyEvent.KEYCODE_MENU -> {
                 showMenu()
                 return true
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (Keys.isConfirm(keyCode)) return true
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onPause() {
