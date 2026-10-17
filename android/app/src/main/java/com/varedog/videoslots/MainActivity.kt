@@ -28,7 +28,7 @@ class MainActivity : Activity() {
 
         val adapter = VideoAdapter(this)
         grid.adapter = adapter
-        grid.onItemClickListener = { _, _, position, _ ->
+        grid.onItemClickListener = android.widget.AdapterView.OnItemClickListener { _, _, position, _ ->
             if (position in items.indices) openPlayer(position)
         }
         grid.requestFocus()
