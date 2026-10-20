@@ -3,6 +3,7 @@ package com.varedog.videoslots
 import android.app.Activity
 import android.app.AlertDialog
 import android.media.AudioManager
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
@@ -38,6 +39,9 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
 
     private val handler = Handler(Looper.getMainLooper())
 
+    private var lastAspect: Pair<Int, Int>? = null
+    private var aspectToken = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
@@ -69,6 +73,8 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        // 容器尺寸就绪/变化时，按已知的视频显示比例重新布局
+        lastAspect?.let { layoutSurface(it.first, it.second) }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -102,6 +108,11 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
             hideBuffering()
             schedulePrefetch()
         }
+        val urlI = Api.absolute(items[i].second)
+        mp.setOnVideoSizeChangedListener { m, _, _ ->
+            if (m === current) applyVideoAspect(m, urlI)
+            true
+        }
         mp.setOnCompletionListener { onCompleted() }
         mp.setOnErrorListener { _, what, extra ->
             fail("播放失败（$what/$extra）\n建议上传 H.264 编码 MP4")
@@ -121,6 +132,50 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
         }
         current = mp
         mp.prepareAsync()
+    }
+
+    /**
+     * 按视频真实显示比例调整 SurfaceView 尺寸（fit-center 居中），
+     * 保证横屏视频铺满、竖屏视频左右留黑边不拉伸。
+     */
+    private fun applyVideoAspect(mp: MediaPlayer, url: String) {
+        val w = mp.videoWidth
+        val h = mp.videoHeight
+        if (w <= 0 || h <= 0) return
+        val token = ++aspectToken
+        Api.imgAsync({
+            var dw = w
+            var dh = h
+            try {
+                val r = MediaMetadataRetriever()
+                r.setDataSource(url, HashMap<String, String>())
+                val rot = r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                r.release()
+                if (rot == "90" || rot == "270") {
+                    val t = dw
+                    dw = dh
+                    dh = t
+                }
+            } catch (e: Exception) {
+            }
+            Pair(dw, dh)
+        }, { dim ->
+            if (token == aspectToken) layoutSurface(dim.first, dim.second)
+        }, { _ -> })
+    }
+
+    private fun layoutSurface(vw: Int, vh: Int) {
+        if (vw <= 0 || vh <= 0) return
+        lastAspect = Pair(vw, vh)
+        val parent = surfaceView.parent as? android.view.ViewGroup ?: return
+        val pw = parent.width
+        val ph = parent.height
+        if (pw <= 0 || ph <= 0) return
+        val scale = minOf(pw.toFloat() / vw, ph.toFloat() / vh)
+        val lp = surfaceView.layoutParams
+        lp.width = Math.max(1, (vw * scale).toInt())
+        lp.height = Math.max(1, (vh * scale).toInt())
+        surfaceView.layoutParams = lp
     }
 
     private fun onCompleted() {
@@ -146,6 +201,7 @@ class PlayerActivity : Activity(), SurfaceHolder.Callback {
             showTitle()
             try { if (surface != null) current?.setSurface(surface) } catch (e: Exception) {}
             current?.start()
+            applyVideoAspect(current!!, Api.absolute(items[n].second))
             schedulePrefetch()
         } else {
             try { current?.setSurface(null) } catch (e: Exception) {}
