@@ -45,3 +45,12 @@ Entries discovered by the Agent during task execution should follow this format.
   - 子域名 tv.988199.xyz 为本项目 Worker Custom Domain；video.988199.xyz 已被用户其他 R2 桶占用
   - AGP 8.7.3 + Kotlin 2.0.21 + Gradle 8.9 + JDK 17 + compileSdk 35 的 CI 组合已验证可用
   - Kotlin 中 GridView.OnItemClickListener 用 lambda 赋值需显式 SAM 构造器，否则编译报 "An explicit type is required"
+
+[修改代码前必须先备份]
+- Date: 2026-10-20
+- Context: 修复竖屏视频拉伸时用户多次强调"修改前一定要备份"
+- Category: Workflow & Collaboration
+- Instructions:
+  - 本项目任何代码修改前，必须先完成三重备份：本地完整副本（/tmp/opencode/<项目名>-backup/）+ 远程 git tag（backup-<版本>-<日期>）+ 确认 git 历史可回退
+  - 备份完成并向用户报告后才允许动代码；改动遵循最小化原则（只动目标文件）
+  - 用户明确要求"功能都正常的部分不要改"，禁止顺手重构或修改无关功能
